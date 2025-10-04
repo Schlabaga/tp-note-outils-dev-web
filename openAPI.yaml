@@ -1,0 +1,218 @@
+openapi: 3.0.3
+info:
+  title: Bakery API - OpenAPI 3.0
+  version: "1.0.0"
+
+servers:
+  - url: https://facebook-server.com
+    description: Main production server
+
+paths:
+  /bakeries:
+    get:
+      summary: Get all bakeries
+      operationId: getBakeries
+      parameters:
+        - $ref: "#/components/parameters/per-page"
+        - $ref: "#/components/parameters/page"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bakery"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
+    post:
+      summary: Create a bakery
+      operationId: CreateBakery
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BakeryCreation"
+      responses:
+        '201':
+          description: Bakery created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bakery"
+        '404':
+          $ref: "#/components/responses/not_found"
+        '403':
+          $ref: "#/components/responses/forbidden"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
+  /bakeries/{id}:
+    put:
+      summary: Edit a bakery
+      operationId: EditBakery
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BakeryCreation"
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '403':
+          $ref: "#/components/responses/forbidden"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
+    delete:
+      summary: Delete a bakery
+      operationId: DeleteBakery
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '403':
+          $ref: "#/components/responses/forbidden"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
+  /bakeries/{id}/clients:
+    get:
+      summary: Get a bakery's clients list
+      operationId: GetClients
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+        - $ref: "#/components/parameters/per-page"
+        - $ref: "#/components/parameters/page"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
+components:
+  schemas:
+    BakeryCommon:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Boulangerie du lac
+        contact_info:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+              example: example@mail.com
+        address:
+          type: string
+          example: rue du Lac Metz
+        color:
+          type: string
+          example: blue
+
+    BakeryCreation:
+      allOf:
+        - $ref: "#/components/schemas/BakeryCommon"
+
+    Bakery:
+      allOf:
+        - $ref: "#/components/schemas/BakeryCommon"
+        - type: object
+          properties:
+            id:
+              type: integer
+          required:
+            - id
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: Jean Dupont
+        email:
+          type: string
+          format: email
+          example: client@mail.com
+      required:
+        - id
+        - name
+        - email
+
+  parameters:
+  
+    created-by:
+      name: created-by
+      description: The id of the admin that created this item
+      in: query
+      schema:
+        type: integer
+      
+  
+    per-page:
+      name: per_page
+      description: The number of results per page (maximum 100)
+      in: query
+      schema:
+        type: integer
+        default: 30
+        maximum: 100
+
+    page:
+      name: page
+      description: The page number of the results to fetch
+      in: query
+      schema:
+        type: integer
+        default: 1
+
+  responses:
+    not_found:
+      description: Did not found the resource
+    forbidden:
+      description: You do not have the permissions to view or get this
+    internal_server_error:
+      description: An internal server error occured
+    no_content:
+      description: No content to display, sorry.
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
