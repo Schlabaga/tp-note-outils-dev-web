@@ -2,7 +2,7 @@ name: Linting
 on: push
 
 jobs:
-  echo-test:
+  linting-file:
     runs-on: ubuntu-latest
     steps:
 
