@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Bakery API - OpenAPI 3.0
+  title: Bakery - OpenAPI 3.0
   version: "1.0.0"
+  license: 
+      name: Apache 2.0
+      url: "https://monurl.com"
 
 servers:
   - url: https://facebook-server.com
@@ -12,10 +15,14 @@ paths:
     get:
       summary: Get all bakeries
       operationId: getBakeries
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: "#/components/parameters/per-page"
         - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/created-by"
       responses:
+
         '200':
           description: OK
           content:
@@ -24,6 +31,9 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Bakery"
+
+        '403':
+          $ref: "#/components/responses/forbidden"
         '500':
           $ref: "#/components/responses/internal_server_error"
 
@@ -51,8 +61,29 @@ paths:
           $ref: "#/components/responses/forbidden"
         '500':
           $ref: "#/components/responses/internal_server_error"
-
+          
+          
   /bakeries/{id}:
+
+    delete:
+      summary: Delete a bakery
+      operationId: DeleteBakery
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '403':
+          $ref: "#/components/responses/forbidden"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+
     put:
       summary: Edit a bakery
       operationId: EditBakery
@@ -77,10 +108,13 @@ paths:
           $ref: "#/components/responses/forbidden"
         '500':
           $ref: "#/components/responses/internal_server_error"
+          
+   
 
-    delete:
-      summary: Delete a bakery
-      operationId: DeleteBakery
+  /bakeries/{id}/clients:
+    get:
+      summary: Get a bakery's clients list
+      operationId: GetClients
       security:
         - bearerAuth: []
       parameters:
@@ -89,27 +123,13 @@ paths:
           schema:
             type: integer
           required: true
-      responses:
-        '204':
-          $ref: "#/components/responses/no_content"
-        '403':
-          $ref: "#/components/responses/forbidden"
-        '500':
-          $ref: "#/components/responses/internal_server_error"
-
-  /bakeries/{id}/clients:
-    get:
-      summary: Get a bakery's clients list
-      operationId: GetClients
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
         - $ref: "#/components/parameters/per-page"
         - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/created-by"
+
       responses:
+        '403':
+          $ref: "#/components/responses/forbidden"
         '200':
           description: OK
           content:
@@ -200,6 +220,7 @@ components:
       schema:
         type: integer
         default: 1
+        minimum: 1
 
   responses:
     not_found:
